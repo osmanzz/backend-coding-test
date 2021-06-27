@@ -5,6 +5,16 @@ const app = express();
 
 const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
+const winston = require('winston');
+const logConfig = {
+    transports: [
+        new winston.transports.Console({
+            level: 'warn'
+        })
+    ]
+}
+
+const logger = winston.createLogger(logConfig);
 
 module.exports = (db) => {
     app.get('/health', (req, res) => res.send('Healthy'));
@@ -19,6 +29,7 @@ module.exports = (db) => {
         const driverVehicle = req.body.driver_vehicle;
 
         if (startLatitude < -90 || startLatitude > 90 || startLongitude < -180 || startLongitude > 180) {
+            logger.warn('Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively');
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
@@ -26,6 +37,8 @@ module.exports = (db) => {
         }
 
         if (endLatitude < -90 || endLatitude > 90 || endLongitude < -180 || endLongitude > 180) {
+          
+            logger.warn('End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively');
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
@@ -33,6 +46,8 @@ module.exports = (db) => {
         }
 
         if (typeof riderName !== 'string' || riderName.length < 1) {
+            logger.warn('Rider name must be a non empty string');
+            
             return res.send({
                 error_code: 'VALIDATION_ERROR',
                 message: 'Rider name must be a non empty string'
@@ -40,16 +55,18 @@ module.exports = (db) => {
         }
 
         if (typeof driverName !== 'string' || driverName.length < 1) {
+            logger.warn('driver name must be a non empty string');
             return res.send({
                 error_code: 'VALIDATION_ERROR',
-                message: 'Rider name must be a non empty string'
+                message: 'driver name must be a non empty string'
             });
         }
 
         if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
+            logger.warn('driver vehicle name must be a non empty string');
             return res.send({
                 error_code: 'VALIDATION_ERROR',
-                message: 'Rider name must be a non empty string'
+                message: 'driver vehicle name must be a non empty string'
             });
         }
 
@@ -57,28 +74,36 @@ module.exports = (db) => {
         
         const result = db.run('INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)', values, function (err) {
             if (err) {
+                logger.warn('Unknown error');
+            
                 return res.send({
                     error_code: 'SERVER_ERROR',
                     message: 'Unknown error'
                 });
             }
-
-            db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (err, rows) {
-                if (err) {
-                    return res.send({
-                        error_code: 'SERVER_ERROR',
-                        message: 'Unknown error'
-                    });
+            
+            var get = async() =>{
+                try{
+                    const data = await getData(db,this.lastID);
+                    res.send(data);
+                }catch(e) {
+                    logger.warn('async error',e);
+                    console.log(e);
                 }
-
-                res.send(rows);
-            });
+            };
+            get();
         });
+        
+        
     });
 
-    app.get('/rides', (req, res) => {
-        db.all('SELECT * FROM Rides', function (err, rows) {
+    app.get('/rides/:page/:perpage', (req, res) => {
+        const page = Number(req.params.page);
+        const per_page = Number(req.params.perpage);
+        const offset = String((page-1)*per_page);
+        db.all(`SELECT * FROM Rides  order by rideID limit '${req.params.page}' offset '${offset}' `, function (err, rows) {
             if (err) {
+                console.log(err);
                 return res.send({
                     error_code: 'SERVER_ERROR',
                     message: 'Unknown error'
@@ -118,3 +143,15 @@ module.exports = (db) => {
 
     return app;
 };
+
+function getData(db,id) {
+    return new Promise((resolve,reject)=>{
+        db.all('SELECT * FROM Rides WHERE rideID = ?', id, function (err, rows) {
+            if (err) {
+                reject(err);
+              
+            }
+            resolve(rows);
+        });
+    });
+}
