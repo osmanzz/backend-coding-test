@@ -7,12 +7,10 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "npx nyc@latest mocha tests",
-    "start": "node index.js"
+    "test": "npx nyc@latest mocha tests && eslint",
+    "start": "node index.js",
+    "prepush":"npm test"
   },
-  "pre_push": [
-    "index.js"
-  ],
   "keywords": [
     "Xendit"
   ],
