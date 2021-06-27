@@ -7,9 +7,12 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "mocha tests",
+    "test": "npx nyc@latest mocha tests",
     "start": "node index.js"
   },
+  "pre_push": [
+    "index.js"
+  ],
   "keywords": [
     "Xendit"
   ],
@@ -21,7 +24,11 @@
     "sqlite3": "^4.0.6"
   },
   "devDependencies": {
+    "eslint": "^7.29.0",
     "mocha": "^6.1.4",
-    "supertest": "^4.0.2"
+    "nyc": "^15.1.0",
+    "pre-push": "^0.1.1",
+    "supertest": "^4.0.2",
+    "winston": "^3.3.3"
   }
 }
