@@ -1,0 +1,59 @@
+-- POST /rides
+curl -X POST \
+  http://localhost:8010/rides \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Length: 148' \
+  -H 'Content-Type: application/json' \
+  -H 'Host: localhost:8010' \
+  -H 'Postman-Token: 86fbcd32-8767-4305-a1ab-fde2367a4329,b706553a-5e93-4d1f-868f-76e26cfe6375' \
+  -H 'User-Agent: PostmanRuntime/7.17.1' \
+  -H 'cache-control: no-cache' \
+  -d '{
+	"start_lat":"0",
+	"start_long":"0",
+	"end_lat":"0",
+	"end_long":"0",
+	"rider_name":"osman",
+	"driver_name":"osman",
+	"driver_vehicle":"osman"
+}'
+Purpose: This API is to insert the rider's data and stored into our sqlite and display it in this API
+Change: on this API, I just used async/wait function into selection data after the insertion to make 
+the query doesn't wait another. so when we query the data we can process anything that helps the business process.
+
+
+--- GET /rides/:page/:perpage
+curl -X GET \
+  http://localhost:8010/rides/1/10 \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Host: localhost:8010' \
+  -H 'Postman-Token: aab1e67e-aa90-4ba2-b17c-e9a03f259415,0c338f4b-c005-49df-b396-95c24e9b79e7' \
+  -H 'User-Agent: PostmanRuntime/7.17.1' \
+  -H 'cache-control: no-cache'
+
+Purpose: this API is for get all of the riders on our sqlite for display.
+Change: Before i refactore the code. This API haven't used pagination to query the data on the sqlite.
+so, i decided to use the pagination for reduce the process time on this API. The pagination itself, using
+a new request with page and perpage. that will be used to decided which page and what is the last position
+that want to display for the riders. on the query itself has been added the limit and offset for the limitation
+and place the position of the ID with order by to sort all of the riderID.
+
+-- GET /rides/:riderID
+curl -X GET \
+  http://localhost:8010/rides/1 \
+  -H 'Accept: */*' \
+  -H 'Accept-Encoding: gzip, deflate' \
+  -H 'Cache-Control: no-cache' \
+  -H 'Connection: keep-alive' \
+  -H 'Host: localhost:8010' \
+  -H 'Postman-Token: 12838406-b51b-4b81-8792-dbd567349da2,bd6e4387-3618-47aa-9731-c08ac625e627' \
+  -H 'User-Agent: PostmanRuntime/7.17.1' \
+  -H 'cache-control: no-cache'
+
+  purpose: This API is for get the specific Rider data to display on the apps.
